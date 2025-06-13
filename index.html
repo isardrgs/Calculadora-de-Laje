@@ -10,6 +10,7 @@
     integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
 </head>
 
@@ -43,7 +44,7 @@
 
         <div class="input-field">
           <i class="fa-solid fa-ruler-horizontal"></i>
-          <input type="number" id="largura" step="0.01" requi>
+          <input type="number" id="largura" step="0.01" min="0" required>
           <span>m</span>
         </div>
 
@@ -53,7 +54,7 @@
 
         <div class="input-field">
           <i class="fa-solid fa-ruler-vertical"></i>
-          <input type="number" id="comprimento" step="0.01" required>
+          <input type="number" id="comprimento" step="0.01" min="0" required>
           <span>m</span>
         </div>
 
@@ -65,7 +66,7 @@
       </div>
       <div id="relatorio" style="display:none; margin-top: 20px;">
         <h3>Relatório Gerado</h3>
-        <button onclick="gerarPDF()">Baixar PDF</button>
+        <button onclick="gerarOrcamentoPDF()">Baixar Relatório</button>
       
         <div style="margin-top: 10px;">
           <label for="email">Enviar para e-mail:</label>
@@ -87,7 +88,12 @@
   
       const largura = parseFloat(document.getElementById("largura").value);
       const comprimento = parseFloat(document.getElementById("comprimento").value);
-      if (!largura || !comprimento) return alert("Preencha todos os campos!");
+      if (isNaN(largura) || isNaN(comprimento)) {
+        return alert("Preencha todos os campos!");
+      }
+      if (largura <= 0 || comprimento <= 0) {
+        return alert("Informe valores positivos para as dimensões.");
+      }
   
       const area = largura * comprimento;
       const preco = area * 50;
@@ -116,42 +122,41 @@
       };
     }
   
-    async function gerarPDF() {
+
+    function gerarOrcamentoPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-  
-      const hoje = new Date();
-      const data = hoje.toLocaleDateString();
-  
+
       const r = window.relatorioData;
-  
+
       doc.setFontSize(12);
       doc.text("FORTE LAJES - RELATÓRIO DE VENDA", 20, 20);
-      doc.text("Data de Emissão: " + data, 20, 30);
-      doc.text("Cliente: Fulano da Silva", 20, 40);
-      doc.text("Empresa: Forte Lajes", 20, 50);
-      doc.text("CNPJ: 22.554.550-0001/95", 20, 60);
-      doc.text("Inscrição Estadual: 51984986516", 20, 70);
-      doc.text("Endereço: Est. Comandante Luiz Souto 462 - Tanque, RJ, CEP: 22733040", 20, 80);
-  
-      doc.text("------ DETALHES ------", 20, 95);
-      doc.text(`Largura da laje: ${r.largura} m`, 20, 105);
-      doc.text(`Comprimento: ${r.comprimento} m`, 20, 115);
-      doc.text(`Área total: ${r.area} m²`, 20, 125);
-      doc.text(`Quantidade de Vigas: ${r.vigas}`, 20, 135);
-      doc.text(`Quantidade de Isopores: ${r.isopores}`, 20, 145);
-      doc.text(`Preço Total: R$ ${r.preco}`, 20, 155);
-  
-      doc.save("relatorio_forte_lajes.pdf");
+      doc.text("Razão Social: Forte Lajes", 20, 30);
+      doc.text("Inscrição Estadual: 51984986516", 20, 40);
+      doc.text(
+        "Endereço do emitente: Est. Comandante Luiz Souto 462 - Tanque, RJ, CEP: 22733040",
+        20,
+        50
+      );
+
+      doc.text("------ Materiais Comprados ------", 20, 65);
+      doc.text(`Largura da laje: ${r.largura} m`, 20, 75);
+      doc.text(`Comprimento: ${r.comprimento} m`, 20, 85);
+      doc.text(`Área total: ${r.area} m²`, 20, 95);
+      doc.text(`Quantidade de Vigas: ${r.vigas}`, 20, 105);
+      doc.text(`Quantidade de Isopores: ${r.isopores}`, 20, 115);
+
+      doc.save("relatorio_orcamento.pdf");
     }
   
     function enviarEmail() {
-      const email = document.getElementById("email").value;
-      if (!email || !email.includes("@")) {
+      const email = document.getElementById("email").value.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
         alert("Digite um e-mail válido.");
         return;
       }
-  
+
       document.getElementById("statusEnvio").innerText = "Enviado com sucesso!";
     }
   </script>
